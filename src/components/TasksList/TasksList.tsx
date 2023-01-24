@@ -3,58 +3,36 @@
 import React, { useEffect, useState } from "react";
 import { OrderList } from "primereact/orderlist";
 import { TasksService } from "../services/TasksService";
-import { Toolbar } from "primereact/toolbar";
 import { Button } from "primereact/button";
-import { SplitButton } from "primereact/splitbutton";
-import { Tooltip } from "primereact/tooltip";
+import { Task } from "../model/task-model";
 
-function TasksList() {
-	const [products, setProducts] = useState([]);
-	const [isClicked, setIsClicked] = useState(false);
-	const [count, setCount] = useState(0);
+const TasksList: React.FC<{
+	task: Task | null;
+}> = ({ task }) => {
+	const [products, setProducts] = useState<any>([]);
+
 	const tasksService = new TasksService();
 
-	const leftContents = (
-		<React.Fragment>
-			<Button label="New" icon="pi pi-plus" className="mr-2" />
-			<Button label="Upload" icon="pi pi-upload" className="p-button-success" />
-			<i className="pi pi-bars p-toolbar-separator mr-2" />
-			{/*<SplitButton
-				label="Save"
-				icon="pi pi-check"
-				model={items}
-				className="p-button-warning"
-			></SplitButton>*/}
-		</React.Fragment>
-	);
+	function deleteTaskById(id: number) {
+		tasksService.deleteTask(id);
+	}
 
-	const rightContents = (
-		<React.Fragment>
-			<Button icon="pi pi-times" className="p-button-danger" />
-		</React.Fragment>
-	);
-	//const tasks = [
-	//	{
-	//		id: 1,
-	//		todo: "Watch Movies",
-	//	},
-	//	{
-	//		id: 2,
-	//		todo: "Read books",
-	//	},
-	//	{
-	//		id: 3,
-	//		todo: "Eat rice",
-	//	},
-	//];
 	useEffect(() => {
-		tasksService.getTasks().then(data => setProducts(data.todos));
+		tasksService.getTasks().then(data => setProducts(data));
 	}, []); // eslint-disable-line react-hooks/exhaustive-deps
-	const itemTemplate = (item: any) => {
+
+	useEffect(() => {
+		if (task) {
+			tasksService.createTask(task).then(data => {
+				setProducts((prev: any) => [data, ...prev]);
+				console.log(data);
+			});
+		}
+	}, [task]); // eslint-disable-line react-hooks/exhaustive-deps
+	const itemTemplate = (item: Task) => {
 		return (
 			<div
 				className="product-item flex flex-column justify-content-between md:flex-row font-bold text-lg text-0 text-black-alpha-90 overflow-hidden w-27rem"
-				onClick={e => setIsClicked(true)}
 				style={{
 					//width: "400px",
 					background: "lightblue",
@@ -66,14 +44,16 @@ function TasksList() {
 				<div className="product-list-detail -mt-3">
 					<h5 className="mb-2">{item.todo}</h5>
 
-					<i className="pi pi-tag product-category-icon"></i>
-					<span className="product-category">Task</span>
+					<i className="pi pi-tag product-category-icon text-sm"></i>
+					<span className="product-category text-sm">Task</span>
 				</div>
 				<Button
 					icon="pi pi-trash"
 					className="p-button-rounded p-button-danger p-button-sm"
 					onClick={e => {
-						console.log(item.id);
+						deleteTaskById(item.id);
+						setProducts(products.filter((p: any) => p.id !== item.id));
+						console.log(products);
 					}}
 				/>
 			</div>
@@ -81,22 +61,29 @@ function TasksList() {
 	};
 	return (
 		<>
-			<div className="orderlist-demo flex flex-column mb-3 ">
-				<OrderList
-					value={products}
-					dragdrop
-					listStyle={{
-						height: "auto",
-						background: "white",
-						border: "0",
-					}}
-					dataKey="id"
-					itemTemplate={itemTemplate}
-					onChange={e => setProducts(e.value)}
-				></OrderList>
-			</div>
+			{products.length === 0 && (
+				<div className="flex  flex-row justify-content-center">
+					<h5 className="text-3xl text-bluegray-500">Add your todo tasks</h5>
+				</div>
+			)}
+			{products.length > 0 && (
+				<div className="orderlist-demo flex flex-column mb-3 ">
+					<OrderList
+						value={products}
+						dragdrop
+						listStyle={{
+							height: "auto",
+							background: "white",
+							border: "0",
+						}}
+						dataKey="id"
+						itemTemplate={itemTemplate}
+						onChange={e => setProducts(e.value)}
+					></OrderList>
+				</div>
+			)}
 		</>
 	);
-}
+};
 
 export default TasksList;
