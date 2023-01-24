@@ -22,19 +22,17 @@ const TasksList: React.FC<{
 	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 	useEffect(() => {
-		if (task) {
+		if (task?.id) {
 			tasksService.createTask(task).then(data => {
 				setProducts((prev: any) => [data, ...prev]);
-				console.log(data);
 			});
 		}
-	}, [task]); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [task?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 	const itemTemplate = (item: Task) => {
 		return (
 			<div
 				className="product-item flex flex-column justify-content-between md:flex-row font-bold text-lg text-0 text-black-alpha-90 overflow-hidden w-27rem"
 				style={{
-					//width: "400px",
 					background: "lightblue",
 					color: "black",
 					padding: "8px",
@@ -44,8 +42,8 @@ const TasksList: React.FC<{
 				<div className="product-list-detail -mt-3">
 					<h5 className="mb-2">{item.todo}</h5>
 
-					<i className="pi pi-tag product-category-icon text-sm"></i>
-					<span className="product-category text-sm">Task</span>
+					<i className="pi pi-tag product-category-icon text-sm text-700"></i>
+					<span className="product-category text-sm text-700">Task</span>
 				</div>
 				<Button
 					icon="pi pi-trash"
