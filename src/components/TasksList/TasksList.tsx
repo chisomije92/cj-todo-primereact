@@ -1,21 +1,50 @@
 /** @format */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { OrderList } from "primereact/orderlist";
 import { TasksService } from "../services/TasksService";
 import { Button } from "primereact/button";
 import { Task } from "../model/task-model";
+import { ConfirmDialog, confirmDialog } from "primereact/confirmdialog";
+import { Toast } from "primereact/toast";
 
 const TasksList: React.FC<{
 	task: Task | null;
 }> = ({ task }) => {
 	const [products, setProducts] = useState<any>([]);
+	const toast = useRef<any>(null);
 
 	const tasksService = new TasksService();
+	const accept = (item: Task) => {
+		toast?.current?.show({
+			severity: "info",
+			summary: "Deleted!",
+			detail: `Task: "${item?.todo.toString().toUpperCase()}" has been deleted`,
+			life: 2000,
+		});
+		setProducts(products.filter((p: Task) => p.id !== item.id));
+		tasksService.deleteTask(item.id);
+	};
 
-	function deleteTaskById(id: number) {
-		tasksService.deleteTask(id);
-	}
+	const reject = (item: Task) => {
+		toast?.current?.show({
+			severity: "warn",
+			summary: "Deletion Cancelled",
+			detail: `Task: ${item?.todo.toString().toUpperCase()} was not deleted`,
+			life: 2000,
+		});
+	};
+
+	const confirmDelete = (item: Task) => {
+		confirmDialog({
+			message: "Do you want to delete this task?",
+			header: "Delete Confirmation",
+			icon: "pi pi-info-circle",
+			acceptClassName: "p-button-danger",
+			accept: accept.bind(this, item),
+			reject: reject.bind(this, item),
+		});
+	};
 
 	useEffect(() => {
 		tasksService.getTasks().then(data => setProducts(data));
@@ -28,6 +57,7 @@ const TasksList: React.FC<{
 			});
 		}
 	}, [task?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
 	const itemTemplate = (item: Task) => {
 		return (
 			<div
@@ -45,13 +75,12 @@ const TasksList: React.FC<{
 					<i className="pi pi-tag product-category-icon text-sm text-700"></i>
 					<span className="product-category text-sm text-700">Task</span>
 				</div>
+
 				<Button
 					icon="pi pi-trash"
 					className="p-button-rounded p-button-danger p-button-sm"
 					onClick={e => {
-						deleteTaskById(item.id);
-						setProducts(products.filter((p: any) => p.id !== item.id));
-						console.log(products);
+						confirmDelete(item);
 					}}
 				/>
 			</div>
@@ -59,6 +88,8 @@ const TasksList: React.FC<{
 	};
 	return (
 		<>
+			<Toast ref={toast} position="top-right" />
+
 			{products.length === 0 && (
 				<div className="flex  flex-row justify-content-center">
 					<h5 className="text-3xl text-bluegray-500">Add your todo tasks</h5>
@@ -66,6 +97,7 @@ const TasksList: React.FC<{
 			)}
 			{products.length > 0 && (
 				<div className="orderlist-demo flex flex-column mb-3 ">
+					<ConfirmDialog />
 					<OrderList
 						value={products}
 						dragdrop
