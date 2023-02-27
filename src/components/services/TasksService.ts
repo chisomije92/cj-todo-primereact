@@ -1,19 +1,20 @@
 
 export class TasksService {
+
   getTasks() {
-    return fetch('https://heartbreaking-linen-angora.glitch.me/todos?_sort=id&_order=desc')
+    return fetch('https://todo-jsondb.onrender.com/todos?_sort=id&_order=desc')
       .then(res => res.json())
   }
 
   deleteTask(id: number) {
-    fetch(`https://heartbreaking-linen-angora.glitch.me/todos/${id}`, {
+    fetch(`https://todo-jsondb.onrender.com/todos/${id}`, {
       method: 'DELETE',
     })
       .then(res => res.json())
   }
 
   createTask(task: any) {
-    return fetch('https://heartbreaking-linen-angora.glitch.me/todos', {
+    return fetch('https://todo-jsondb.onrender.com/todos', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
